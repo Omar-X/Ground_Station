@@ -1,0 +1,105 @@
+
+#: import slide kivy.uix.screenmanager.SlideTransition
+#: import C kivy.properties.get_color_from_hex
+
+<DataBox@FloatLayout>
+    avg: 0
+    current: 0
+    id: data_box
+    data: ''
+    Label:
+        size_hint: 0.5, 0.1
+        pos_hint: {'center_x': 0.5, 'top': 1}
+        text: self.parent.data
+        font_size: '20sp'
+        color: C('#000000')
+    Label:
+        size_hint: 0.4, 0.1
+        background_color: C('#ffff00ff')
+        opacity: 0.8
+        background_normal: ''
+        pos_hint: {'x': 0, 'top': 0.1}
+        text: "Average: " + str(self.parent.avg)
+        font_size: '14sp'
+        color: C('#000000')
+
+    Label:
+        size_hint: 0.4, 0.1
+        background_color: C('#00ff00ff')
+        opacity: 0.8
+        background_normal: ''
+        pos_hint: {'x': 0.4, 'top': 0.1}
+        text: "current: " + str(self.parent.current)
+        font_size: '14sp'
+        color: C('#000000')
+
+
+
+# -----------------------------------------------------------------------------
+<Main_widget>:
+    transition: slide(duration= 0.5)
+    Screen:
+        name: "set_up"
+        FloatLayout:
+            id: main_widget
+            spacing:"10sp" # sp scale is better for different devices
+            padding: "10sp"
+            Label: # not complete
+                pos_hint: {"x":0,"top":1}
+                size_hint: (0.9, 0.35)
+                text: " Set Up Page"
+                font_size: "40sp"
+
+            Button:
+                pos_hint: {"x":0.9,"top":1}
+                size_hint: (0.1, 0.35)
+                font_name: "shapes"
+                font_size: "40sp"
+                text: "\u003e"
+                on_press: root.current = "display_screen"
+
+            TextInput:
+                id: text_input
+                pos_hint: {"x":0.05,"top":0.5}
+                size_hint: (0.9, 0.2)
+                valign: "middle"
+                halign: "center"
+                font_size: "40sp"
+                hint_text: "127.0.0.1 or localhost"
+                multiline: False
+                on_text_validate:
+                    root.data_points = int(text_input.text)
+                    root.current = "data_screen"
+
+
+    Screen:
+        name: "display_screen"
+        GridLayout:
+            cols: 2
+            padding: "10sp"
+            spacing: "20sp"
+
+            DataBox:
+                data: "Pressure"
+                id: pressure_box
+                color: (1,1,0)
+            DataBox:
+                data: "Temperature"
+                id: temperature_box
+                color: (1,1,0)
+            DataBox:
+                data: "Gas Sensor"
+                id: gas_box
+                color: (1,1,0)
+            DataBox:
+                data: "Velocity"
+                id: velocity_box
+                color: (1,1,0)
+            DataBox:
+                data: "battey level"
+                id: battery_box
+                color: (1,1,0)
+            DataBox:
+                data: "Altitude"
+                id: altitude_box
+                color: (1,1,0)
