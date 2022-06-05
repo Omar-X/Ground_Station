@@ -3,5 +3,8 @@ please add it here
 ------------------------------------------------
 we need to change the boundries of the graph whenever the point is out
 https://stackoverflow.com/questions/25352006/kivy-garden-graph-absolute-position-of-0-0-on-the-graph
-
+-----------------------------------------------
+See the following links:
+https://docs.micropython.org/en/latest/esp8266/tutorial/network_tcp.html
+https://randomnerdtutorials.com/esp8266-nodemcu-client-server-wi-fi/
 
