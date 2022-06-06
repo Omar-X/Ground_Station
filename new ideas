@@ -63,3 +63,6 @@ if __name__ == '__main__':
 
     # Close serial communication
     arduino.close()
+
+------------------------------------------------------------------------------
+check the following link: https://github.com/frmdstryr/kivy-android-serial
