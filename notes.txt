@@ -1,0 +1,20 @@
+Zigbee", or IEEE 802.15. 4, is a protocol. As such, 
+it has no "programming language
+===============================================================
+Xbee Python library:
+https://xbplib.readthedocs.io/en/latest/#:~:text=XBee%20devices%20allow%20you%20to,control%20their%20I%2FO%20lines.
+
+================================================================
+
+https://www.digi.com/support/knowledge-base/how-to-establish-tcp-connections-to-xbee-nodes-usi
+===============================================================
+
+You don't need a router for two computers to communicate over TCP/IP or UDP. They only need IP addresses. There are three mechanisms how they can get an IP address:
+
+DHCP, which is typically what happens when you plug into a router or connect to a Wifi network.
+
+Manual IP configuration, in which you explicitly configure a static IP address for each network interface.
+
+Self-assigned link-local addresses, which is what modern operating systems usually resort to when they don't get any help from a DHCP server.
+
+Most likely, your two computers would resort to #3 and assign themselves an IP address in the 169.254.x range. Your only problem then is discovering what IP addresses were actually assigned. You can use your platform's command-line ifconfig/ipconfig tool for that

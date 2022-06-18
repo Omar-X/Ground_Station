@@ -10,50 +10,58 @@ from kivy.core.text import LabelBase
 from plyer import notification, audio
 from kivy.uix.image import Image
 from kivy_garden.graph import Graph, LinePlot
+from twisted.internet import reactor
+from twisted.internet.protocol import DatagramProtocol
+from kivy.support import install_twisted_reactor
+from kivy.clock import Clock
 # to use android functions like notifications, flash, battery and sensors >> use plyer module
 # audio.file_path = "Music/pristine-609.ogg" # only for android
 # asking user to open microphone (example) (make it in final step)
 # from android.permissions import request_permissions, Permission
 # request_permissions([Permission.RECORD_AUDIO, Permission.NOTIFICATION])
 
+install_twisted_reactor()
+# Get the ip address of the computer
+import socket
+ip = socket.gethostbyname(socket.gethostname())
 
+
+class Client(DatagramProtocol):
+    def __init__(self, host, port,widget):
+        self.widget = widget
+        self.host = host
+        self.port = port
+        self.transport = None
+        self.data = b""
+    
+    def startProtocol(self):
+        self.transport.connect(self.host, self.port)
+        self.transport.write(b"Hello World!")
+        
+    def datagramReceived(self, data, host):
+        print("Datagram received: ", data)
+        self.data = data
+
+    
 class Main_widget(ScreenManager):
     def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
         # to access GROUND_STATIONApp class
         self.app = app
+        self.data_ids = ["pressure_graph", "temperature_graph", "gas_graph", "velocity_graph", "battery_graph", "altitude_graph"]
+        self.data_names = ["Pressure", "Temperature", "Gas", "Velocity", "Battery", "Altitude"]
+        self.data_units = ["hPa", "°C", "ppm", "m/s", "%", "m"]
+        self.transport = None
 
-        self.graph_1 = Graph(size_hint=(1, 0.8), pos_hint={'center_x': 0.5, 'center_y': 0.5},font_size="12sp",
-                             y_ticks_major=2.5, x_ticks_major=10, y_grid_label=True, padding=5, x_grid=True, y_grid=True, xmin=0, xmax=100, ymin=-10, ymax=10)
-        self.graph_2 = Graph(size_hint=(1, 0.8), pos_hint={'center_x': 0.5, 'center_y': 0.5},
-                              y_ticks_major=2.5, x_ticks_major=10, y_grid_label=True, padding=5, x_grid=True, y_grid=True, xmin=-0, xmax=100, ymin=-10, ymax=10)
-        self.graph_3 = Graph(size_hint=(1, 0.8), pos_hint={'center_x': 0.5, 'center_y': 0.5},
-                              y_ticks_major=2.5, x_ticks_major=10, y_grid_label=True, padding=5, x_grid=True, y_grid=True, xmin=-0, xmax=100, ymin=-10, ymax=10)
-        self.graph_4 = Graph(size_hint=(1, 0.8), pos_hint={'center_x': 0.5, 'center_y': 0.5},
-                              y_ticks_major=2.5, x_ticks_major=10, y_grid_label=True, padding=5, x_grid=True, y_grid=True, xmin=-0, xmax=100, ymin=-10, ymax=10)
-        self.graph_5 = Graph(size_hint=(1, 0.8), pos_hint={'center_x': 0.5, 'center_y': 0.5},
-                              y_ticks_major=2.5, x_ticks_major=10, y_grid_label=True, padding=5, x_grid=True, y_grid=True, xmin=-0, xmax=100, ymin=-10, ymax=10)
-        self.graph_6 = Graph(size_hint=(1, 0.8), pos_hint={'center_x': 0.5, 'center_y': 0.5},
-                              y_ticks_major=2.5, x_ticks_major=10, y_grid_label=True, padding=5, x_grid=True, y_grid=True, xmin=-0, xmax=100, ymin=-10, ymax=10)
+    def check_connection(self):
+        self.host = self.ids["ip_address"].text
+        self.port = int(self.ids["port_number"].text)
+        reactor.connectTCP(self.host, self.port, Client(self.host, self.port, self))
+        self.update_graph(self.data_ids)
 
-        self.ids.pressure_box.add_widget(self.graph_1)
-        self.ids.temperature_box.add_widget(self.graph_2)
-        self.ids.gas_box.add_widget(self.graph_3)
-        self.ids.velocity_box.add_widget(self.graph_4)
-        self.ids.battery_box.add_widget(self.graph_5)
-        self.ids.altitude_box.add_widget(self.graph_6)
-
-        self.update_graph([[(x, y**0.5) for x, y in zip(range(0, 100), range(0, 100))], [(x, y**0.5) for x, y in zip(range(0, 100), range(0, 100))],
-                           [(x, y**0.5) for x, y in zip(range(0, 100), range(0, 100))], [(x, y**0.5) for x, y in zip(range(0, 100), range(0, 100))],
-                           [(x, y**0.5) for x, y in zip(range(0, 100), range(0, 100))], [(x, y**0.5) for x, y in zip(range(0, 100), range(0, 100))]])
-
-    def update_graph(self, data):
-        self.graph_1.add_plot(LinePlot(color=[0, 0, 1, 1], points=data[0],line_width=1.5))
-        self.graph_2.add_plot(LinePlot(color=[0, 0, 1, 1], points=data[1],line_width=1.5))
-        self.graph_3.add_plot(LinePlot(color=[0, 0, 1, 1], points=data[2],line_width=1.5))
-        self.graph_4.add_plot(LinePlot(color=[0, 0, 1, 1], points=data[3],line_width=1.5))
-        self.graph_5.add_plot(LinePlot(color=[0, 0, 1, 1], points=data[4],line_width=1.5))
-        self.graph_6.add_plot(LinePlot(color=[0, 0, 1, 1], points=data[5],line_width=1.5))
+    def update_graph(self, data_ids):
+        for i in data_ids:
+            self.ids[i].add_plot(LinePlot(color=[0, 0, 1, 1], points=[(x, y**0.5) for x, y in zip(range(0, 100), range(0, 100))],line_width=1.5))
 
     def warning_popup(self, text,title="Warning"):
         box = BoxLayout(orientation="vertical", spacing=10, padding=10)
