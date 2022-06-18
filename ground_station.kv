@@ -3,7 +3,7 @@
 #: import C kivy.properties.get_color_from_hex
 
 <MY_TextInput@TextInput>:
-    foreground_color: (0.75, 0.75, 0.75, 1.0)
+    foreground_color: (0, 0, 0.9, 1.0)
     text_size: [None,None]
     keyboard_suggestions: True
     valign: "bottom"
@@ -103,37 +103,6 @@
     ymin: -10
     ymax: 10
 
-<DataBoxEdited@FloatLayout>
-    avg: 0
-    current: 0
-    id: data_box
-    data: ''
-    Label:
-        size_hint: 0.5, 0.1
-        pos_hint: {'center_x': 0.5, 'top': 1}
-        text: self.parent.data
-        font_size: '20sp'
-        color: C('#000000')
-    Label:
-        size_hint: 0.4, 0.1
-        background_color: C('#ffff00ff')
-        opacity: 0.8
-        background_normal: ''
-        pos_hint: {'x': 0, 'top': 0.1}
-        text: "Average: " + str(self.parent.avg)
-        font_size: '14sp'
-        color: C('#000000')
-
-    Label:
-        size_hint: 0.4, 0.1
-        background_color: C('#00ff00ff')
-        opacity: 0.8
-        background_normal: ''
-        pos_hint: {'x': 0.4, 'top': 0.1}
-        text: "current: " + str(self.parent.current)
-        font_size: '14sp'
-        color: C('#000000')
-
 # -----------------------------------------------------------------------------
 <Main_widget>:
     transition: slide(duration= 0.5)
@@ -188,15 +157,14 @@
                 multiline: False
 
             Button:
-                pos_hint: {"x":0.5,"top":0.2}
-                size_hint: (0.4, 0.15)
+                pos_hint: {"x":0.6,"top":0.2}
+                size_hint: (0.35, 0.15)
                 font_size: "30sp"
                 background_color: C('#00f50000')
                 text: "Connect"
                 on_press:
                     root.check_connection()
                     # root.connect_to_server(ip_address.text, port_number.text)
-                    root.current = "display_screen"
                 canvas.before:
                     Color:
                         rgba: C('#000077')
@@ -204,6 +172,22 @@
                         pos: self.pos
                         size: self.size
                         radius: [10,]
+
+        Button:
+            pos_hint: {"x":0.1,"top":0.2}
+            size_hint: (0.35, 0.15)
+            font_size: "30sp"
+            background_color: C('#00f50000')
+            text: "Scan"
+            on_press:
+                root.scan_for_devices()
+            canvas.before:
+                Color:
+                    rgba: C('#000077')
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [10,]
 
 #            Button:
 #                pos_hint: {"x":0.9,"top":1}

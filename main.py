@@ -10,9 +10,10 @@ from kivy.core.text import LabelBase
 from plyer import notification, audio
 from kivy.uix.image import Image
 from kivy_garden.graph import Graph, LinePlot
-from twisted.internet import reactor
-from twisted.internet.protocol import DatagramProtocol
 from kivy.support import install_twisted_reactor
+install_twisted_reactor()
+from twisted.internet import reactor
+from twisted.internet.protocol import ReconnectingClientFactory, Protocol
 from kivy.clock import Clock
 # to use android functions like notifications, flash, battery and sensors >> use plyer module
 # audio.file_path = "Music/pristine-609.ogg" # only for android
@@ -20,27 +21,53 @@ from kivy.clock import Clock
 # from android.permissions import request_permissions, Permission
 # request_permissions([Permission.RECORD_AUDIO, Permission.NOTIFICATION])
 
-install_twisted_reactor()
 # Get the ip address of the computer
 import socket
 ip = socket.gethostbyname(socket.gethostname())
 
 
-class Client(DatagramProtocol):
+class Client(Protocol):
     def __init__(self, host, port,widget):
         self.widget = widget
         self.host = host
         self.port = port
         self.transport = None
         self.data = b""
-    
-    def startProtocol(self):
-        self.transport.connect(self.host, self.port)
+
+    def send_msg(self, order, data):
+        msg = json.dumps({"ORDER": order, "DATA": data})
+        self.transport.write(msg.encode(FORMAT))
+
+    def connectionMade(self):
+        print("Connection made")
         self.transport.write(b"Hello World!")
-        
+        self.widget.transport = self.transport
+
+
     def datagramReceived(self, data, host):
         print("Datagram received: ", data)
         self.data = data
+
+
+class ClientFactory(ReconnectingClientFactory):
+    protocol = Client
+
+    def __init__(self, host, port, widget):
+        self.widget = widget
+        self.host = host
+        self.port = port
+
+    def startedConnecting(self, connector):
+        print('Started to connect.')
+
+    def clientConnectionLost(self, connector, reason):
+        print('Lost connection.  Reason:', reason)
+        ReconnectingClientFactory.clientConnectionLost(self, connector, reason)
+
+    def clientConnectionFailed(self, connector, reason):
+        print('Connection failed. Reason:', reason)
+        ReconnectingClientFactory.clientConnectionFailed(self, connector, reason)
+
 
     
 class Main_widget(ScreenManager):
@@ -55,13 +82,54 @@ class Main_widget(ScreenManager):
 
     def check_connection(self):
         self.host = self.ids["ip_address"].text
-        self.port = int(self.ids["port_number"].text)
-        reactor.connectTCP(self.host, self.port, Client(self.host, self.port, self))
-        self.update_graph(self.data_ids)
+        self.port = self.ids["port_number"].text
+        if not self.host and not self.port:
+            self.warning_popup("Please enter valid ip address and port number")
+        else:
+            self.port = int(self.port)
+            reactor.connectTCP(self.host, self.port, ClientFactory(self))
+            self.update_graph(self.data_ids)
+            self.current = "display_screen"
+
+    def scan_for_devices(self):
+        pass
 
     def update_graph(self, data_ids):
         for i in data_ids:
             self.ids[i].add_plot(LinePlot(color=[0, 0, 1, 1], points=[(x, y**0.5) for x, y in zip(range(0, 100), range(0, 100))],line_width=1.5))
+
+    # ========== waiting popup.
+    def start_waiting_popup(self, *args, title=" ", separator_color=(0, 0, 0, 0)):
+        if not self.open_popup:
+            self.waiting_popup(title, separator_color)
+            self.wait_schedule = Clock.schedule_interval(self.wait_clock, 1)
+            self.open_popup = True
+
+    def wait_clock(self, *args):
+        widget = self.wait_text
+        if widget.text == ". . . ":
+            widget.text = ""
+        else:
+            widget.text += ". "
+
+    def waiting_popup(self, title, separator_color):
+        box = BoxLayout(orientation="vertical", spacing=10, padding=10)
+        self.wait_text = Label(text=". ", color=(0, 0, 1), font_size="34sp")
+        box.add_widget(Label(text="", size_hint_y=0.1))
+        box.add_widget(Label(text="Please Wait", size_hint_y=0.1, font_size="30sp"))
+        box.add_widget(self.wait_text)
+        self.popup_wait = Popup(content=box, size_hint=(0.75, 0.3), auto_dismiss=False, title=title,
+                                separator_color=separator_color, title_align="center")
+        self.popup_wait.background_color = (0, 0, 0.1)
+        self.popup_wait.open()
+
+    def stop_waiting_popup(self, *args):
+        if self.open_popup:
+            self.wait_schedule.cancel()
+            self.popup_wait.dismiss()
+            self.open_popup = False
+
+    # =========
 
     def warning_popup(self, text,title="Warning"):
         box = BoxLayout(orientation="vertical", spacing=10, padding=10)
