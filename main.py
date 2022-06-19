@@ -31,6 +31,10 @@ IP = socket.gethostbyname(socket.gethostname())
 Network = ".".join(IP.split('.')[:3]) + '.0'
 Router = ".".join(IP.split('.')[:3]) + '.1'
 FORMAT = "utf-8"
+print("IP Address",IP)
+print("Network",Network)
+print("Router",Router)
+
 
 class Client(Protocol):
     def __init__(self):
@@ -53,7 +57,6 @@ class Client(Protocol):
         self.widget.transport = self.transport
         self.widget.stop_waiting_popup()
         self.widget.current = "display_screen"
-
 
     def dataReceived(self, data):
         self.data = data

@@ -2,6 +2,8 @@
 #: import slide kivy.uix.screenmanager.SlideTransition
 #: import C kivy.properties.get_color_from_hex
 
+# ==============================================================================
+
 <MY_TextInput@TextInput>:
     foreground_color: (0, 0, 0.9, 1.0)
     text_size: [None,None]
@@ -52,17 +54,21 @@
             ellipse: self.size[0] + self.pos[0] - self.size[1]/2.0, self.pos[1], self.size[1], self.size[1], 360, 540
             width: 1.2
 
+# ==============================================================================
+
 <DataBox@FloatLayout>
     avg: 0
     current: 0
     id: data_box
     data: ''
+
     Label:
-        size_hint: 0.5, 0.1
+        size_hint: (0.5, 0.1)
         pos_hint: {'center_x': 0.5, 'top': 1}
         text: self.parent.data
         font_size: '20sp'
         color: C('#000000')
+
     Label:
         size_hint: 0.4, 0.1
         background_color: C('#ffff00ff')
@@ -72,7 +78,8 @@
         text: "Average: " + str(self.parent.avg)
         font_size: '14sp'
         color: C('#000000')
-    Button:
+
+    Label:
         size_hint: 0.4, 0.1
         background_color: C('#00ff00ff')
         opacity: 0.8
@@ -81,10 +88,22 @@
         text: "current: " + str(self.parent.current)
         font_size: '14sp'
         color: C('#000000')
+
+    Button:
+        font_name: "shapes"
+        text: "\u003e"
+        size_hint: 0.1, 0.1
+        pos_hint: {'x': 0.8, 'top': 0.1}
+        background_color: C('#ffff00ff')
+        color: C('#000000')
+        font_size: '20sp'
+
         on_press:
-            # app.root.send_msg("Check",self.parent.data)
+            app.root.send_msg("Check",self.parent.data)
             print(self.parent.size_hint)
             print(self.parent.data)
+
+# ==============================================================================
 
 <GraphBox@Graph>
     color: (1,1,0)
@@ -102,7 +121,8 @@
     ymin: -10
     ymax: 10
 
-# -----------------------------------------------------------------------------
+# ==============================================================================
+
 <Main_widget>:
     transition: slide(duration= 0.5)
     Screen:
