@@ -14,10 +14,9 @@ from kivy.support import install_twisted_reactor
 install_twisted_reactor()
 from twisted.internet import reactor
 from twisted.internet.protocol import ReconnectingClientFactory, Protocol
-import json
+import json, sys
 from kivy.clock import Clock
-from kivy.garden import mapview
-
+from kivy_garden import mapview
 """ to use android functions like notifications, flash, battery and sensors >> use plyer module
  audio.file_path = "Music/pristine-609.ogg" # only for android
  asking user to open microphone (example) (make it in final step)
@@ -64,8 +63,10 @@ class Client(Protocol):
         self.widget.current = "display_screen"
 
     def dataReceived(self, data):
-        self.data = data
-        print("Data received:", data)
+        self.data = json.loads(data.decode(FORMAT))
+        # self.widget.change_data(self.data)
+        # print("Data received", self.data["DATA"])
+
 
 
 class ClientFactory(ReconnectingClientFactory):
@@ -94,7 +95,7 @@ class Main_widget(ScreenManager):
         super().__init__(**kwargs)
         # to access GROUND_STATIONApp class
         self.app = app
-        self.data_ids = ["pressure_graph", "temperature_graph", "gas_graph", "velocity_graph", "battery_graph", "altitude_graph"]
+        self.data_ids = ["pressure_graph", "temperature_graph", "velocity_graph", "battery_graph", "altitude_graph"]
         self.data_names = ["Pressure", "Temperature", "Velocity", "Battery", "Altitude"]
         self.data_units = ["hPa", "°C", "m/s", "%", "m"]
         self.transport = None
@@ -114,7 +115,8 @@ class Main_widget(ScreenManager):
             self.port = int(self.port)
             reactor.connectTCP(self.host, self.port, ClientFactory(self.host,self.port,self))
             # self.update_graph(self.data_ids)
-            self.start_waiting_popup("Connecting to Ground Station", (0, 0, 0, 0))
+            # self.start_waiting_popup("Connecting to Ground Station", (0, 0, 0, 0))
+            # self.change_data(self.data_ids)
             # self.current = "display_screen"
 
     def scan_for_devices(self):
@@ -124,9 +126,10 @@ class Main_widget(ScreenManager):
         for i in data_ids:
             self.ids[i].add_plot(LinePlot(color=[0, 0, 1, 1], points=[(x, y**0.5) for x, y in zip(range(0, 50), range(0, 50))],line_width=1.5))
 
-    def change_data(self):
-        for i in self.data_ids:
-            self.ids[i].xmax = self.ids[i].xmax + 5
+    def change_data(self, data):
+        for i in data:
+            self.ids[i].text = self.data_names[data.index(i)] + ": " + str(self.data[i]) + " " + self.data_units[data.index(i)]
+
 
     # ========== waiting popup.
     def start_waiting_popup(self, *args, title=" ", separator_color=(0, 0, 0, 0)):
@@ -203,6 +206,9 @@ if __name__ == "__main__":
 
     # to adjust the app when the keyboard rises
     from kivy.core.window import Window
+    from os import path
+    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+
 
     Window.keyboard_anim_args = {'d': .2, 't': 'in_out_expo'}
     Window.softinput_mode = "below_target"

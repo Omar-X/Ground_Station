@@ -1,10 +1,11 @@
 
 #: import slide kivy.uix.screenmanager.SlideTransition
 #: import C kivy.properties.get_color_from_hex
-#:import MapSource kivy.garden.mapview.MapSource
-#:import MapView kivy.garden.mapview.MapView
-#:import MapMarker kivy.garden.mapview.MapMarker
-#:import MapMarkerPopup kivy.garden.mapview.MapMarkerPopup
+#:import  MapSource kivy_garden.mapview.MapSource
+#:import MapView kivy_garden.mapview.MapView
+#:import MapMarker kivy_garden.mapview.MapMarker
+#:import MapMarkerPopup kivy_garden.mapview.MapMarkerPopup
+#:import sys sys
 
 # ==============================================================================
 
@@ -124,7 +125,7 @@
     x_grid: True
     y_grid: True
     xmin: 0
-    xmax: 100
+    xmax: 20
     ymin: -10
     ymax: 10
 
@@ -229,12 +230,12 @@
     Screen:
         name: "display_screen"
         FloatLayout:
-            padding: "10sp"
+            padding: "15sp"
             spacing:"10sp" # sp scale is better for different devices
             GridLayout:
                 size_hint: (0.6, 1)
                 pos_hint: {"right":1,"top":1}
-                cols: 1
+                cols: 2
                 padding: "10sp"
                 spacing: "20sp"
 
@@ -246,6 +247,8 @@
                     GraphBox:
                         id: pressure_graph
                         color: (1,1,0)
+                        ymin: 900
+                        ymax: 1100
 
                 DataBox:
                     data: "Temperature"
@@ -253,6 +256,8 @@
                     color: (1,1,0)
                     GraphBox:
                         id: temperature_graph
+                        ymin: 15
+                        ymax: 30
 
 
                 DataBox:
@@ -261,6 +266,8 @@
                     color: (1,1,0)
                     GraphBox:
                         id: velocity_graph
+                        ymin: 0
+                        ymax: 30
 
                 DataBox:
                     data: "battey level"
@@ -268,6 +275,8 @@
                     color: (1,1,0)
                     GraphBox:
                         id: battery_graph
+                        ymin: 0
+                        ymax: 15
 
                 DataBox:
                     data: "Altitude"
@@ -275,14 +284,19 @@
                     color: (1,1,0)
                     GraphBox:
                         id: altitude_graph
+                        y_ticks_major: 50
+                        ymin: 0
+                        ymax: 800
+
 
             MapView:
                 size_hint: (0.4, 1)
-                pos_hint: {"x":0,"top":1}
+                pos_hint: {"x":0,"y":0}
                 id: map_view
-                zoom: 15
-                lat: 40.741895
-                lon: -73.989308
+                zoom: 13
+                lat: 41.090592
+                lon: 29.001952
+                map_source: MapSource(sys.argv[1], attribution="") if len(sys.argv) > 1 else "osm"
                 # on_map_ready:
                  #   self.add_marker(lat=40.741895, lon=-73.989308,title="Home",icon="atlas://data/images/defaulttheme/place",popup="Home")
                 on_lat:
@@ -291,10 +305,24 @@
                     print("lon:", self.lon)
 
                 MapMarkerPopup:
-                    source: ""
-                    lat: 43.741895
-                    lon: -70.989308
-                    title: "Home"
-                    text: "Home"
+                    id: marker_popup
+                    lat: 41.090592
+                    opacity: 0.9
+                    lon: 29.001952
+                    popup_size: (300, 300)
+                    # title: "Home"
+                    # text: "Home"
+                    Bubble:
+                        BoxLayout:
+                            orientation: "horizontal"
+                            padding: "5dp"
+                            AsyncImage:
+                                source: "http://upload.wikimedia.org/wikipedia/commons/9/9d/France-Lille-VieilleBourse-FacadeGrandPlace.jpg"
+                                mipmap: True
+                            Label:
+                                text: "[b]Lille[/b]\\n1 154 861 hab\\n5 759 hab./km2"
+                                markup: True
+                                halign: "center"
+
 
 
