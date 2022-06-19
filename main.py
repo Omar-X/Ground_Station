@@ -16,6 +16,7 @@ from twisted.internet import reactor
 from twisted.internet.protocol import ReconnectingClientFactory, Protocol
 import json
 from kivy.clock import Clock
+from kivy.garden import mapview
 
 """ to use android functions like notifications, flash, battery and sensors >> use plyer module
  audio.file_path = "Music/pristine-609.ogg" # only for android
@@ -34,6 +35,10 @@ FORMAT = "utf-8"
 print("IP Address",IP)
 print("Network",Network)
 print("Router",Router)
+
+# # GPS module in kivy
+# from kivy.garden.gps import GPS, GPSMarker
+# from kivy.garden.mapview import MapView, MapMarker, MapSource
 
 
 class Client(Protocol):
@@ -90,10 +95,11 @@ class Main_widget(ScreenManager):
         # to access GROUND_STATIONApp class
         self.app = app
         self.data_ids = ["pressure_graph", "temperature_graph", "gas_graph", "velocity_graph", "battery_graph", "altitude_graph"]
-        self.data_names = ["Pressure", "Temperature", "Gas", "Velocity", "Battery", "Altitude"]
-        self.data_units = ["hPa", "°C", "ppm", "m/s", "%", "m"]
+        self.data_names = ["Pressure", "Temperature", "Velocity", "Battery", "Altitude"]
+        self.data_units = ["hPa", "°C", "m/s", "%", "m"]
         self.transport = None
         self.open_popup = False
+
 
     def send_msg(self, order, data):
         msg = json.dumps({"ORDER": order, "DATA": data})
@@ -107,7 +113,7 @@ class Main_widget(ScreenManager):
         else:   
             self.port = int(self.port)
             reactor.connectTCP(self.host, self.port, ClientFactory(self.host,self.port,self))
-            self.update_graph(self.data_ids)
+            # self.update_graph(self.data_ids)
             self.start_waiting_popup("Connecting to Ground Station", (0, 0, 0, 0))
             # self.current = "display_screen"
 
@@ -116,7 +122,11 @@ class Main_widget(ScreenManager):
 
     def update_graph(self, data_ids):
         for i in data_ids:
-            self.ids[i].add_plot(LinePlot(color=[0, 0, 1, 1], points=[(x, y**0.5) for x, y in zip(range(0, 100), range(0, 100))],line_width=1.5))
+            self.ids[i].add_plot(LinePlot(color=[0, 0, 1, 1], points=[(x, y**0.5) for x, y in zip(range(0, 50), range(0, 50))],line_width=1.5))
+
+    def change_data(self):
+        for i in self.data_ids:
+            self.ids[i].xmax = self.ids[i].xmax + 5
 
     # ========== waiting popup.
     def start_waiting_popup(self, *args, title=" ", separator_color=(0, 0, 0, 0)):
@@ -175,7 +185,12 @@ class Main_widget(ScreenManager):
 
 class GROUND_STATIONApp(App):
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)    
+        super().__init__(**kwargs)
+
+    def on_location(self, **kwargs):
+        self.lat = kwargs.get('lat')
+        self.lon = kwargs.get('lon')
+
 
     def build(self):
         widget = Main_widget(self)

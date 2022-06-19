@@ -1,6 +1,10 @@
 
 #: import slide kivy.uix.screenmanager.SlideTransition
 #: import C kivy.properties.get_color_from_hex
+#:import MapSource kivy.garden.mapview.MapSource
+#:import MapView kivy.garden.mapview.MapView
+#:import MapMarker kivy.garden.mapview.MapMarker
+#:import MapMarkerPopup kivy.garden.mapview.MapMarkerPopup
 
 # ==============================================================================
 
@@ -59,6 +63,8 @@
 <DataBox@FloatLayout>
     avg: 0
     current: 0
+    padding: "10dp"
+    spacing: 10
     id: data_box
     data: ''
 
@@ -76,7 +82,7 @@
         background_normal: ''
         pos_hint: {'x': 0, 'top': 0.1}
         text: "Average: " + str(self.parent.avg)
-        font_size: '14sp'
+        font_size: '18sp'
         color: C('#000000')
 
     Label:
@@ -86,7 +92,7 @@
         background_normal: ''
         pos_hint: {'x': 0.4, 'top': 0.1}
         text: "current: " + str(self.parent.current)
-        font_size: '14sp'
+        font_size: '18sp'
         color: C('#000000')
 
     Button:
@@ -94,7 +100,7 @@
         text: "\u003e"
         size_hint: 0.1, 0.1
         pos_hint: {'x': 0.8, 'top': 0.1}
-        background_color: C('#ffff00ff')
+        background_color: C('#00004422')
         color: C('#000000')
         font_size: '20sp'
 
@@ -102,6 +108,7 @@
             app.root.send_msg("Check",self.parent.data)
             print(self.parent.size_hint)
             print(self.parent.data)
+            app.root.change_data()
 
 # ==============================================================================
 
@@ -221,53 +228,73 @@
 
     Screen:
         name: "display_screen"
-        GridLayout:
-            cols: 2
+        FloatLayout:
             padding: "10sp"
-            spacing: "20sp"
+            spacing:"10sp" # sp scale is better for different devices
+            GridLayout:
+                size_hint: (0.6, 1)
+                pos_hint: {"right":1,"top":1}
+                cols: 1
+                padding: "10sp"
+                spacing: "20sp"
 
-            DataBox:
-                data: "Pressure"
-                id: pressure_box
-                graph_id: "pressure_graph"
-                color: (1,1,0)
-                GraphBox:
-                    id: pressure_graph
+                DataBox:
+                    data: "Pressure"
+                    id: pressure_box
+                    graph_id: "pressure_graph"
                     color: (1,1,0)
+                    GraphBox:
+                        id: pressure_graph
+                        color: (1,1,0)
 
-            DataBox:
-                data: "Temperature"
-                id: temperature_box
-                color: (1,1,0)
-                GraphBox:
-                    id: temperature_graph
+                DataBox:
+                    data: "Temperature"
+                    id: temperature_box
+                    color: (1,1,0)
+                    GraphBox:
+                        id: temperature_graph
 
-            DataBox:
-                data: "Gas Sensor"
-                id: gas_box
-                color: (1,1,0)
-                GraphBox:
-                    id: gas_graph
 
-            DataBox:
-                data: "Velocity"
-                id: velocity_box
-                color: (1,1,0)
-                GraphBox:
-                    id: velocity_graph
+                DataBox:
+                    data: "Velocity"
+                    id: velocity_box
+                    color: (1,1,0)
+                    GraphBox:
+                        id: velocity_graph
 
-            DataBox:
-                data: "battey level"
-                id: battery_box
-                color: (1,1,0)
-                GraphBox:
-                    id: battery_graph
+                DataBox:
+                    data: "battey level"
+                    id: battery_box
+                    color: (1,1,0)
+                    GraphBox:
+                        id: battery_graph
 
-            DataBox:
-                data: "Altitude"
-                id: altitude_box
-                color: (1,1,0)
-                GraphBox:
-                    id: altitude_graph
+                DataBox:
+                    data: "Altitude"
+                    id: altitude_box
+                    color: (1,1,0)
+                    GraphBox:
+                        id: altitude_graph
+
+            MapView:
+                size_hint: (0.4, 1)
+                pos_hint: {"x":0,"top":1}
+                id: map_view
+                zoom: 15
+                lat: 40.741895
+                lon: -73.989308
+                # on_map_ready:
+                 #   self.add_marker(lat=40.741895, lon=-73.989308,title="Home",icon="atlas://data/images/defaulttheme/place",popup="Home")
+                on_lat:
+                    print("lat:", self.lat)
+                on_lon:
+                    print("lon:", self.lon)
+
+                MapMarkerPopup:
+                    source: ""
+                    lat: 43.741895
+                    lon: -70.989308
+                    title: "Home"
+                    text: "Home"
 
 
