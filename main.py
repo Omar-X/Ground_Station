@@ -14,23 +14,29 @@ from kivy.support import install_twisted_reactor
 install_twisted_reactor()
 from twisted.internet import reactor
 from twisted.internet.protocol import ReconnectingClientFactory, Protocol
+import json
 from kivy.clock import Clock
-# to use android functions like notifications, flash, battery and sensors >> use plyer module
-# audio.file_path = "Music/pristine-609.ogg" # only for android
-# asking user to open microphone (example) (make it in final step)
-# from android.permissions import request_permissions, Permission
-# request_permissions([Permission.RECORD_AUDIO, Permission.NOTIFICATION])
+
+""" to use android functions like notifications, flash, battery and sensors >> use plyer module
+ audio.file_path = "Music/pristine-609.ogg" # only for android
+ asking user to open microphone (example) (make it in final step)
+ from android.permissions import request_permissions, Permission
+ request_permissions([Permission.RECORD_AUDIO, Permission.NOTIFICATION]) """
 
 # Get the ip address of the computer
-import socket
-ip = socket.gethostbyname(socket.gethostname())
 
+# From the ip address, get the hostname
+import socket
+IP = socket.gethostbyname(socket.gethostname())
+Network = ".".join(IP.split('.')[:3]) + '.0'
+Router = ".".join(IP.split('.')[:3]) + '.1'
+FORMAT = "utf-8"
 
 class Client(Protocol):
-    def __init__(self, host, port,widget):
-        self.widget = widget
-        self.host = host
-        self.port = port
+    def __init__(self):
+        self.widget = None
+        self.host = None
+        self.port = None
         self.transport = None
         self.data = b""
 
@@ -39,14 +45,19 @@ class Client(Protocol):
         self.transport.write(msg.encode(FORMAT))
 
     def connectionMade(self):
+        self.widget = self.factory.widget
+        self.host = self.factory.host
+        self.port = self.factory.port
         print("Connection made")
         self.transport.write(b"Hello World!")
         self.widget.transport = self.transport
+        self.widget.stop_waiting_popup()
+        self.widget.current = "display_screen"
 
 
-    def datagramReceived(self, data, host):
-        print("Datagram received: ", data)
+    def dataReceived(self, data):
         self.data = data
+        print("Data received:", data)
 
 
 class ClientFactory(ReconnectingClientFactory):
@@ -79,17 +90,23 @@ class Main_widget(ScreenManager):
         self.data_names = ["Pressure", "Temperature", "Gas", "Velocity", "Battery", "Altitude"]
         self.data_units = ["hPa", "°C", "ppm", "m/s", "%", "m"]
         self.transport = None
+        self.open_popup = False
+
+    def send_msg(self, order, data):
+        msg = json.dumps({"ORDER": order, "DATA": data})
+        self.transport.write(msg.encode(FORMAT))
 
     def check_connection(self):
         self.host = self.ids["ip_address"].text
         self.port = self.ids["port_number"].text
         if not self.host and not self.port:
             self.warning_popup("Please enter valid ip address and port number")
-        else:
+        else:   
             self.port = int(self.port)
-            reactor.connectTCP(self.host, self.port, ClientFactory(self))
+            reactor.connectTCP(self.host, self.port, ClientFactory(self.host,self.port,self))
             self.update_graph(self.data_ids)
-            self.current = "display_screen"
+            self.start_waiting_popup("Connecting to Ground Station", (0, 0, 0, 0))
+            # self.current = "display_screen"
 
     def scan_for_devices(self):
         pass
@@ -149,7 +166,7 @@ class Main_widget(ScreenManager):
     def notify(title="Notification", message = "notification message", timeout = 5):
         # notification.notify(title = title, message=message,timeout=timeout,app_icon="Images/icon.png",app_name="NOTIFICATION",ticker = "1")
         # use notification with
-        # audio.start()  #only for android
+        # audio.start()  # only for android
         pass
 
 
